@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信公众号封面生成器</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 40px auto 0; /* 增加上边距 */
+            aspect-ratio: 3.35/1;
+            display: flex;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        /* 主图区域 */
+        .main-area {
+            width: 70%;
+            aspect-ratio: 2.35/1;
+            position: relative;
+            background: linear-gradient(135deg, #2D2FEA 0%, #1A1C9E 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5%;
+            color: white;
+        }
+        /* 分享区域 */
+        .share-area {
+            width: 30%;
+            aspect-ratio: 1/1;
+            background: #2D2FEA;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10%;
+            color: white;
+        }
+        /* 主标题样式 */
+        .main-title {
+            font-size: 4vw;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1vw;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        /* 副标题样式 */
+        .sub-title {
+            font-size: 1.5vw;
+            opacity: 0.9;
+            margin-bottom: 0.5vw;
+        }
+        /* 核心词样式 */
+        .core-words {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            /* 添加较小的 gap 属性 */
+            gap: 0.5%; 
+        }
+        .core-word {
+            font-size: 3vw;
+            font-weight: 700;
+            width: auto; /* 自动宽度 */
+            text-align: center;
+            /* 进一步减小 padding 值 */
+            padding: 0.5%; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            /* 保持原有动画效果 */
+            transition: all 0.3s ease;
+            transform: scale(1);
+        }
+        
+        .core-word:hover {
+            transform: scale(1.05);
+            z-index: 1;
+        }
+        /* 动态光影效果 */
+        .light-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.3) 0%, transparent 50%);
+            animation: lightMove 8s infinite alternate;
+        }
+        @keyframes lightMove {
+            0% { transform: translate(-10%, -10%); }
+            100% { transform: translate(10%, 10%); }
+        }
+        /* 控制面板 */
+        
+            /* 优化控制面板样式 */
+            .control-panel {
+                margin: 20px auto;
+                max-width: 800px;
+                background: white;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                font-family: 'Noto Sans SC', sans-serif;
+                margin-bottom: 40px; /* 增加下边距 */
+            }
+            
+            .control-panel h3 {
+                color: white; /* 修改文字颜色为白色 */
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 20px;
+                padding: 10px; /* 增加内边距 */
+                border-radius: 8px; /* 圆角 */
+                background: linear-gradient(135deg, #2D2FEA, #1A1C9E, #E91E63, #9C27B0); /* 多彩渐变背景 */
+                background-size: 200% 200%; /* 背景大小 */
+                animation: gradientAnimation 5s ease infinite; /* 动画效果 */
+                text-align: center; /* 文字居中 */
+            }
+            
+            @keyframes gradientAnimation {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+                border: 2px solid;
+                border-image: linear-gradient(135deg, #2D2FEA, #1A1C9E, #E91E63, #9C27B0);
+                border-image-slice: 1;
+            }
+            
+            .form-group:hover {
+                background: #f1f3f5;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #495057;
+            }
+            
+            .form-row {
+                display: flex;
+                gap: 15px;
+                margin-top: 15px;
+            }
+            
+            .form-col {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            input[type="text"],
+            input[type="color"],
+            select {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: border 0.3s;
+            }
+            
+            input[type="text"]:focus,
+            select:focus {
+                border-color: #2D2FEA;
+                outline: none;
+            }
+            
+            /* 按钮样式优化 */
+            button {
+                background: #2D2FEA;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.3s;
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            button:hover {
+                background: #1A1C9E;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            
+            /* 滑块样式优化 */
+            input[type="range"] {
+                width: 100%;
+                height: 6px;
+                border-radius: 3px;
+                background: #e0e0e0;
+                outline: none;
+            }
+            
+            input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: #2D2FEA;
+                cursor: pointer;
+            }
+
+    .button-row {
+        display: flex; /* 添加这一行，使按钮水平排列 */
+        gap: 10px; /* 设置按钮之间的间距 */
+        justify-content: center; /* 按钮居中对齐 */
+        margin-top: 20px; /* 添加顶部间距 */
+    }
+    button {
+        flex: 1; /* 让按钮宽度自适应父容器 */
+        max-width: 200px; /* 设置最大宽度，避免按钮过宽 */
+    }
+    .form-group {
+        margin-bottom: 12px;
+        padding: 10px;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .control-panel {
+        margin-top: 15px;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <h3 style="margin-bottom: 20px; color: #2D2FEA; font-size: 18px;">
+            <i class="icon-settings"></i> 微信公众号封面生成器
+        </h3>
+        
+        <!-- 新增隐藏的 bgColorInput 输入框 -->
+        <input type="color" id="bgColorInput" style="display: none;">
+        
+        <div class="form-group">
+            <label  >主标题</label>
+            <input type="text" id="titleInput" value="DeepSeek-V3新升级！" placeholder="输入主标题内容" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+            <div class="form-row">
+                <div class="form-col">
+                    <label>主标题颜色</label>
+                    <input type="color" id="titleColor" value="#FFFFFF" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+                </div>
+                <div class="form-col">
+                    <label>主标题字体</label>
+                    <select id="titleFont" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+                        <option value="Arial">Arial</option>
+                        <option value="Microsoft YaHei">微软雅黑</option>
+                        <option value="SimSun">宋体</option>
+                        <option value="SimHei">黑体</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Palatino">Palatino</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>主标题大小</label>
+                    <input type="range" id="titleSize" min="20" max="80" value="40" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+                    <span id="titleSizeValue">40px</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>副标题</label>
+            <input type="text" id="subtitleInput" value="零基础做出爆款封面" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+            <div class="form-row">
+                <div class="form-col">
+                    <label>副标题颜色</label>
+                    <input type="color" id="subtitleColor" value="#FFFFFF" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+                </div>
+                <div class="form-col">
+                    <label>副标题字体</label>
+                    <select id="subtitleFont" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+                        <option value="Arial">Arial</option>
+                        <option value="Microsoft YaHei">微软雅黑</option>
+                        <option value="SimSun">宋体</option>
+                        <option value="SimHei">黑体</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Palatino">Palatino</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>副标题大小</label>
+                    <input type="range" id="subtitleSize" min="12" max="40" value="24" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+                    <span id="subtitleSizeValue">24px</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>核心词内容</label>
+            <input type="text" id="coreWordsInput" value="爆款封面" placeholder="输入2-10个字的短语" style="background-color: #f8f9fa; padding: 8px; border-radius: 6px; width: calc(100% - 20px);">
+        </div>
+        <div class="form-group" style="display: none;">
+            <label>背景图片</label>
+            <input type="file" id="bgImageInput" accept="image/*">
+        </div>
+      
+        <!-- 将四个按钮放入同一行 -->
+        <div class="button-row">
+            <button onclick="document.getElementById('bgImageInput').click()">选择背景图片</button>
+            <button onclick="randomImageBackground()">随机图片背景</button>
+            <button onclick="randomSolidColor()">随机纯色背景</button>
+            <button onclick="updateCover()">更新封面</button>
+            <button onclick="downloadCover()">下载封面图</button>
+        </div>
+    </div>
+
+    <div class="container" id="cover-container">
+        <div class="light-effect"></div>
+        <div class="main-area">
+            <h1 class="main-title">DeepSeek-V3新升级！</h1>
+            <h2 class="sub-title">零基础做出爆款封面</h2>
+        </div>
+        <div class="share-area">
+            <div class="core-words">
+                <div class="core-word">爆款</div>
+                <div class="core-word">封面</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新字体大小显示
+        document.getElementById('titleSize').addEventListener('input', function() {
+            document.getElementById('titleSizeValue').textContent = this.value + 'px';
+        });
+        
+        document.getElementById('subtitleSize').addEventListener('input', function() {
+            document.getElementById('subtitleSizeValue').textContent = this.value + 'px';
+        });
+
+        // 更新核心词布局
+        function updateCoreWordsLayout() {
+            const input = document.getElementById('coreWordsInput').value;
+            const container = document.querySelector('.core-words');
+            container.innerHTML = '';
+
+            // 使用正则表达式匹配一个或多个连续空格进行分割
+            const groups = input.split(/\s+/).filter(group => group.trim() !== '');
+            groups.forEach(group => {
+                const div = document.createElement('div');
+                div.className = 'core-word';
+                div.textContent = group.trim();
+                div.style.width = 'auto';
+                container.appendChild(div);
+            });
+        }
+
+        // 修改updateCover函数
+        function updateCover() {
+            const title = document.getElementById('titleInput').value;
+            const subtitle = document.getElementById('subtitleInput').value;
+            const coreWords = document.getElementById('coreWordsInput').value;
+
+            // 更新主标题样式
+            const titleElement = document.querySelector('.main-title');
+            titleElement.textContent = title;
+            titleElement.style.color = document.getElementById('titleColor').value;
+            titleElement.style.fontFamily = document.getElementById('titleFont').value;
+            titleElement.style.fontSize = document.getElementById('titleSize').value + 'px';
+
+            // 更新副标题样式
+            const subtitleElement = document.querySelector('.sub-title');
+            subtitleElement.textContent = subtitle;
+            subtitleElement.style.color = document.getElementById('subtitleColor').value;
+            subtitleElement.style.fontFamily = document.getElementById('subtitleFont').value;
+            subtitleElement.style.fontSize = document.getElementById('subtitleSize').value + 'px';
+
+            // 调用 updateCoreWordsLayout 来更新核心词布局
+            updateCoreWordsLayout();
+        }
+
+        // 确保实时更新
+        document.getElementById('coreWordsInput').addEventListener('input', function() {
+            updateCoreWordsLayout();
+            updateCover(); // 强制刷新封面
+        });
+
+        // 添加核心词元素
+        function addCoreWord(text) {
+            const element = document.createElement('div');
+            element.className = 'core-word';
+            element.textContent = text;
+            element.style.width = '50%'; // 每组占50%宽度
+            document.querySelector('.core-words').appendChild(element);
+        }
+        
+        // 修改updateCover函数
+        function updateCover() {
+            const title = document.getElementById('titleInput').value;
+            const subtitle = document.getElementById('subtitleInput').value;
+            const coreWords = document.getElementById('coreWordsInput').value;
+            
+            // 更新主标题样式
+            const titleElement = document.querySelector('.main-title');
+            titleElement.textContent = title;
+            titleElement.style.color = document.getElementById('titleColor').value;
+            titleElement.style.fontFamily = document.getElementById('titleFont').value;
+            titleElement.style.fontSize = document.getElementById('titleSize').value + 'px';
+            
+            // 更新副标题样式
+            const subtitleElement = document.querySelector('.sub-title');
+            subtitleElement.textContent = subtitle;
+            subtitleElement.style.color = document.getElementById('subtitleColor').value;
+            subtitleElement.style.fontFamily = document.getElementById('subtitleFont').value;
+            subtitleElement.style.fontSize = document.getElementById('subtitleSize').value + 'px';
+            
+            // 更新核心词
+            const coreWordElements = document.querySelectorAll('.core-word');
+        }
+
+        // 处理背景图片上传
+        document.getElementById('bgImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // 设置背景图片
+                    document.querySelector('.main-area').style.backgroundImage = `url(${event.target.result})`;
+                    document.querySelector('.share-area').style.backgroundImage = `url(${event.target.result})`;
+                    document.querySelector('.main-area').style.backgroundSize = 'cover';
+                    document.querySelector('.share-area').style.backgroundSize = 'cover';
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('coreWordsInput').addEventListener('input', function() {
+            updateCoreWordsLayout();
+            updateCover();
+        });
+
+        function downloadCover() {
+            html2canvas(document.getElementById('cover-container'), {
+                scale: 2,
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = '公众号封面.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
+
+<script>
+    // 随机颜色数组
+    const colorPalette = [
+        '#2D2FEA', '#F5A623', '#E91E63', '#9C27B0', '#673AB7',
+        '#3F51B5', '#2196F3', '#03A9F4', '#00BCD4', '#009688',
+        '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107',
+        '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B',
+        '#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9', '#92A8D1',
+        '#955251', '#B565A7', '#009B77', '#DD4124', '#D65076',
+        '#45B8AC', '#EFC050', '#5B5EA6', '#9B2335', '#DFCFBE',
+        '#55B4B0', '#E15D44', '#7FCDCD', '#BC243C', '#C3447A'
+    ];
+
+    // 修复随机纯色背景功能
+    function randomSolidColor() {
+        const randomColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+        
+        // 应用随机颜色到主区域和分享区域
+        document.querySelector('.main-area').style.background = randomColor;
+        document.querySelector('.share-area').style.background = randomColor;
+        
+        // 移除背景图片
+        document.querySelector('.main-area').style.backgroundImage = 'none';
+        document.querySelector('.share-area').style.backgroundImage = 'none';
+        
+        // 清除文件选择
+        document.getElementById('bgImageInput').value = '';
+        
+        // 设置隐藏输入框的值
+        document.getElementById('bgColorInput').value = randomColor;
+    }
+
+    // 应用纯色背景
+    function applySolidColor() {
+        const color = document.getElementById('bgColorInput').value;
+        
+        // 应用选择颜色
+        document.querySelector('.main-area').style.background = color;
+        document.querySelector('.share-area').style.background = color;
+        
+        // 移除背景图片
+        document.querySelector('.main-area').style.backgroundImage = 'none';
+        document.querySelector('.share-area').style.backgroundImage = 'none';
+        
+        // 清除文件选择
+        document.getElementById('bgImageInput').value = '';
+    }
+
+    // 修改随机颜色函数
+    function randomSolidColor() {
+        const randomColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+        document.getElementById('bgColorInput').value = randomColor;
+        applySolidColor();
+    }
+
+    // 随机图片数组（可替换为实际图片URL）
+    const imageUrls = [
+        'https://picsum.photos/800/600?random=1',
+        'https://picsum.photos/800/600?random=2',
+        'https://picsum.photos/800/600?random=3',
+        'https://picsum.photos/800/600?random=4'
+    ];
+    
+    function randomImageBackground() {
+        // 清空颜色背景
+        document.querySelector('.main-area').style.background = 'none';
+        document.querySelector('.share-area').style.background = 'none';
+        
+        // 随机选择图片
+        const randomImage = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+        
+        // 应用背景图片
+        document.querySelector('.main-area').style.backgroundImage = `url(${randomImage})`;
+        document.querySelector('.share-area').style.backgroundImage = `url(${randomImage})`;
+        
+        // 清空文件选择器
+        document.getElementById('bgImageInput').value = '';
+    }
+</script>
+
+
+    
+  
