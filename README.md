@@ -4,7 +4,7 @@
 
 ## 在线预览
 
-访问 [wx_cover_generator_trae3](https://luojun0115.github.io/trae-github-pages/) 体验在线版本。
+访问 [微信公众号封面](https://luojun0115.github.io/wx_cover_generator_trae3/) 体验在线版本。
 
 [![部署状态](https://github.com/luojun0115/trae-github-pages/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/luojun0115/trae-github-pages/actions/workflows/pages/pages-build-deployment)
 
